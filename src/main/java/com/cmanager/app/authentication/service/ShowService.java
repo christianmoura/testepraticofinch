@@ -1,13 +1,22 @@
 package com.cmanager.app.authentication.service;
 
+import com.cmanager.app.application.data.ShowCreateRequest;
 import com.cmanager.app.application.data.ShowDTO;
 import com.cmanager.app.application.domain.Show;
 import com.cmanager.app.authentication.repository.ShowRepository;
 import com.cmanager.app.core.exception.AlreadyExistsException;
+import com.cmanager.app.core.utils.Util;
 import com.cmanager.app.integration.client.RequestService;
-import org.springframework.beans.factory.annotation.Value;
+
+import com.cmanager.app.integration.dto.ShowsRequestDTO;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -15,30 +24,64 @@ public class ShowService {
     private final ShowRepository repository;
 
     private final RequestService requestService;
+    
+    private final ObjectMapper objectMapper;
 
-    private static final String URL = "https://api.tvmaze.com/singlesearch/shows?q=%s&embed=episodes";
 
-    @Value("${tvmaze.api-url-show-search}")
-    private String urlRequest;
-
-    public ShowService(ShowRepository repository, RequestService requestService) {
+    public ShowService(ShowRepository repository
+            , RequestService requestService
+            , ObjectMapper objectMapper) {
         this.repository = repository;
         this.requestService = requestService;
+        this.objectMapper = objectMapper;
+
     }
 
-    public ShowDTO create(String showName) {
+    public ResponseEntity<List<ShowDTO>> create(ShowCreateRequest showName) {
 
-        List<Show> shows = repository.findByName(showName);
+        List<Show> shows = repository.findByNameIgnoreCase(showName.name());
 
         if (!shows.isEmpty()) {
             throw new AlreadyExistsException("Show with the same idIntegration and name already exists");
         }
 
-       // final var show = requestService.getShow(urlRequest, showName);
+        ResponseEntity<List<ShowsRequestDTO>> showsIntegrations = requestService.getShowByName(showName.name());
 
+        List<ShowDTO> response = new ArrayList<>();
 
-        //final var showEntity = repository.save(show.toEntity());
-        //return ShowDTO.fromEntity(showEntity);
-            return null;
+        if (showsIntegrations.getBody() == null || showsIntegrations.getBody().isEmpty()) {
+            throw new AlreadyExistsException("Show not found in the external API");
+        } else {
+
+            showsIntegrations.getBody().forEach(item -> {
+                ShowsRequestDTO showRequest = objectMapper.convertValue(item, ShowsRequestDTO.class);
+                Show showEntity = Util.showRequestDTOToShow(showRequest);
+                repository.save(showEntity);
+                response.add(ShowDTO.convertEntity(showEntity));
+            });
+        }
+
+         return ResponseEntity.ok(response);
+
     }
+
+    public ShowDTO findById(String id) {
+        final var show = repository.findById(id).orElse(null);
+
+        return ShowDTO.convertEntity(show);
+
+    }
+
+    public Page<Show> findByName(String name, Pageable pageable) {
+
+        if (name == null || name.trim().isEmpty()) {
+            return repository.findAll(pageable);
+        }
+        return repository.findByNameContainingIgnoreCase(name, pageable);
+    }
+
+
+    
+    
+
 }

@@ -1,7 +1,6 @@
 package com.cmanager.app.integration.dto;
 
-import com.cmanager.app.authentication.data.UserDTO;
-import com.cmanager.app.authentication.domain.User;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -9,12 +8,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
 
-@Schema(name = "ShowsDTO", description = "Objeto da representação de Shows")
+@Schema(name = "ShowsDTO", description = "Objeto do Episodio de Shows")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record EpisodeRequestDTO(
         @JsonProperty("id")
         @Schema(name = "id", description = "Id")
         Integer id,
+        @JsonProperty("url")
+        @Schema(name = "url", description = "Url")
+        String url,
         @JsonProperty("name")
         @Schema(name = "name", description = "Nome")
         String name,
@@ -43,11 +45,15 @@ public record EpisodeRequestDTO(
         @JsonProperty("rating")
         @Schema(name = "rating", description = "Nota")
         RatingDTO rating,
+        @JsonProperty("image")
+        @Schema(name = "image", description = "Imagem")
+        ImageDTO image,
         @JsonProperty("summary")
         @Schema(name = "summary", description = "Resumo")
-        String summary
+        String summary,
+        @JsonProperty("_links")
+        @Schema(name = "_links", description = "Links")
+        LinksDTO _links
 ) {
-    public static UserDTO convertEntity(User u) {
-        return new UserDTO(u.getId(), u.getUsername(), u.getRole(), u.isEnabled());
-    }
+
 }

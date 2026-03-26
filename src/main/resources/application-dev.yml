@@ -25,7 +25,9 @@ app:
     secret: "change-me-in-prod-please-32-bytes-minimum-aaaaaaaaaaaaaa"
 
 tvmaze:
-  api-url-show-search: ${URL_INTEGRATION:https://api.tvmaze.com}/search/shows?q=
+  api-url-show-search-name: ${URL_INTEGRATION:https://api.tvmaze.com}/search/shows?
+  api-url-show-search-id: ${URL_INTEGRATION:https://api.tvmaze.com}/shows
+  api-url-show-search-episodes: ${URL_INTEGRATION:https://api.tvmaze.com}/seasons
 
 logging:
   level:

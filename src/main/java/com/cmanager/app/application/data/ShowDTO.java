@@ -18,7 +18,7 @@ public record ShowDTO(
 
 ) {
     public static ShowDTO convertEntity(Show entity) {
-        return new ShowDTO(entity.getId(), entity.getName());
+        return (entity == null) ? null : new ShowDTO(entity.getId(), entity.getName());
     }
 }
 
